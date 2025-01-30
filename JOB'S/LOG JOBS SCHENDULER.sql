@@ -1,0 +1,2 @@
+select * from DBA_SCHEDULER_JOB_LOG
+WHERE JOB_NAME LIKE '%TAZ%'

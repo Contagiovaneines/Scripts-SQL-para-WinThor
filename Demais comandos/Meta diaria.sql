@@ -1,0 +1,29 @@
+SELECT TO_CHAR(X, 'DD/MM/YYYY') as X, V-NVL(DEV,0) AS Y, SERIE FROM
+(SELECT D.DATA AS X , SUM(VLVENDA) AS V, 'Venda diária' AS SERIE
+            FROM VIEW_VENDAS_RESUMO_FATURAMENTO V, PCUSUARI B ,(
+            SELECT TRUNC(SYSDATE, 'MM')+ LEVEL -1 AS DATA
+                            
+        FROM DUAL
+        CONNECT BY LEVEL <= 30 )D
+            WHERE V.CODUSUR = B.CODUSUR
+            AND D.DATA = DTSAIDA(+)
+            AND B.CODSUPERVISOR = V.CODSUPERVISOR    
+            AND B.CODUSUR = '5'
+            AND TO_CHAR(V.DTSAIDA,'MM/YYYY') = TO_CHAR(SYSDATE,'MM/YYYY')    
+            AND NVL(CONDVENDA, 0) NOT IN (4, 8, 10, 13, 20, 98, 99)
+            AND NVL(CODFISCAL, 0) NOT IN (522, 622, 722, 532, 632, 732)
+          GROUP BY D.DATA ORDER BY D.DATA) F,
+ (SELECT D.DATA AS DX, NVL(SUM(VLDEVOLUCAO),0) AS DEV 
+            FROM VIEW_DEVOL_RESUMO_FATURAMENTO ,(
+            SELECT TRUNC(SYSDATE, 'MM')+ LEVEL -1 AS DATA
+                            
+        FROM DUAL
+        CONNECT BY LEVEL <= 30 )D
+            WHERE D.DATA = DTENT(+)
+            AND TO_CHAR(DTENT,'MM/YYYY') = TO_CHAR(SYSDATE,'MM/YYYY')
+            AND CODUSUR ='5'
+            AND NVL(CONDVENDA, 0) NOT IN (4, 10, 13, 20, 98, 99)
+        GROUP BY D.DATA ORDER BY D.DATA) D
+ WHERE F.X = D.DX(+)
+ AND 1 = 1
+ ORDER BY X
